@@ -225,25 +225,21 @@ function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState<"overview" | "catalog" | "prescription" | "orders">("overview")
 
   if (activeTab === "catalog") {
-    return <MedicineCatalog />
+    return <MedicineCatalog onBack={() => setActiveTab("overview")} />
   }
 
   if (activeTab === "prescription") {
-    return <PrescriptionUpload />
+    return <PrescriptionUpload onBack={() => setActiveTab("overview")} />
   }
 
   if (activeTab === "orders") {
-    return <OrderTracking />
+    return <OrderTracking onBack={() => setActiveTab("overview")} />
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Customer Dashboard</h2>
-        <Button>
-          <Heart className="h-4 w-4 mr-2" />
-          Emergency Order
-        </Button>
       </div>
 
       <div className="flex gap-2 border-b">
@@ -313,18 +309,6 @@ function CustomerDashboard() {
             </Button>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Health Profile</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-3">Complete your health profile for better recommendations</p>
-            <Button variant="outline" size="sm">
-              Complete Profile
-            </Button>
-          </CardContent>
-        </Card>
       </div>
 
       <Card>
@@ -349,24 +333,20 @@ function CustomerDashboard() {
 }
 
 function StoreManagerDashboard() {
-  const [activeTab, setActiveTab] = useState<"overview" | "inventory" | "orders" | "analytics">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "inventory" | "orders">("overview")
 
   if (activeTab === "inventory") {
-    return <InventoryManagement />
+    return <InventoryManagement onBack={() => setActiveTab("overview")} />
   }
 
   if (activeTab === "orders") {
-    return <OrderProcessing />
+    return <OrderProcessing onBack={() => setActiveTab("overview")} />
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Store Manager Dashboard</h2>
-        <Button>
-          <Shield className="h-4 w-4 mr-2" />
-          Add Medicine
-        </Button>
       </div>
 
       <div className="flex gap-2 border-b">
@@ -378,9 +358,6 @@ function StoreManagerDashboard() {
         </Button>
         <Button variant={activeTab === "orders" ? "default" : "ghost"} onClick={() => setActiveTab("orders")}>
           Orders
-        </Button>
-        <Button variant={activeTab === "analytics" ? "default" : "ghost"} onClick={() => setActiveTab("analytics")}>
-          Analytics
         </Button>
       </div>
 
@@ -402,13 +379,6 @@ function StoreManagerDashboard() {
               onClick={() => setActiveTab("orders")}
             >
               Process Orders
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start bg-transparent"
-              onClick={() => setActiveTab("analytics")}
-            >
-              View Analytics
             </Button>
           </CardContent>
         </Card>
@@ -498,15 +468,15 @@ function DeliveryBoyDashboard() {
   const [isOnline, setIsOnline] = useState(false)
 
   if (activeTab === "available") {
-    return <AvailableOrders />
+    return <AvailableOrders onBack={() => setActiveTab("overview")} />
   }
 
   if (activeTab === "current") {
-    return <CurrentDeliveries />
+    return <CurrentDeliveries onBack={() => setActiveTab("overview")} />
   }
 
   if (activeTab === "earnings") {
-    return <EarningsHistory />
+    return <EarningsHistory onBack={() => setActiveTab("overview")} />
   }
 
   return (

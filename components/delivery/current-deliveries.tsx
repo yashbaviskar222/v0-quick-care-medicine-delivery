@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Package, Phone, Navigation, Camera } from "lucide-react"
+import { MapPin, Package, Phone, Navigation, Camera, ArrowLeft } from "lucide-react"
 
 interface ActiveDelivery {
   id: string
@@ -63,7 +63,7 @@ const currentDeliveries: ActiveDelivery[] = [
   },
 ]
 
-export function CurrentDeliveries() {
+export function CurrentDeliveries({ onBack }: { onBack?: () => void }) {
   const [deliveries, setDeliveries] = useState<ActiveDelivery[]>(currentDeliveries)
 
   const updateDeliveryStatus = (deliveryId: string, newStatus: ActiveDelivery["status"]) => {
@@ -109,9 +109,17 @@ export function CurrentDeliveries() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Current Deliveries</h2>
-          <p className="text-gray-600">Manage your active deliveries</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <Button variant="outline" size="sm" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Current Deliveries</h2>
+            <p className="text-gray-600">Manage your active deliveries</p>
+          </div>
         </div>
         <Badge variant="outline" className="text-blue-600 border-blue-200">
           {deliveries.length} active deliveries

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Clock, Package, CheckCircle, Eye, Printer } from "lucide-react"
+import { Clock, Package, CheckCircle, Eye, Printer, ArrowLeft } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface OrderItem {
@@ -109,7 +109,7 @@ const sampleOrders: Order[] = [
   },
 ]
 
-export function OrderProcessing() {
+export function OrderProcessing({ onBack }: { onBack?: () => void }) {
   const [orders, setOrders] = useState<Order[]>(sampleOrders)
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
@@ -171,9 +171,17 @@ export function OrderProcessing() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Processing</h2>
-        <p className="text-gray-600">Manage and process customer orders</p>
+      <div className="flex items-center gap-4">
+        {onBack && (
+          <Button variant="outline" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        )}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Processing</h2>
+          <p className="text-gray-600">Manage and process customer orders</p>
+        </div>
       </div>
 
       {/* Stats Cards */}

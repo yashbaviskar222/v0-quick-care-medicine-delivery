@@ -1,131 +1,69 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Filter, ShoppingCart, Plus, Minus, Star } from "lucide-react"
+import { Search, Filter, ShoppingCart, Plus, Minus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { BackButton } from "@/components/ui/back-button"
+import { createClient } from "@/lib/supabase/client"
 
 interface Medicine {
   id: string
   name: string
-  genericName: string
-  manufacturer: string
-  price: number
-  originalPrice?: number
-  category: string
-  prescription: boolean
-  inStock: boolean
-  rating: number
-  reviews: number
   description: string
-  image: string
+  price: number
+  stock_quantity: number
+  category: string
+  requires_prescription: boolean
+  image_url: string
 }
-
-const sampleMedicines: Medicine[] = [
-  {
-    id: "1",
-    name: "Paracetamol 500mg",
-    genericName: "Acetaminophen",
-    manufacturer: "Sun Pharma",
-    price: 25,
-    originalPrice: 30,
-    category: "Pain Relief",
-    prescription: false,
-    inStock: true,
-    rating: 4.5,
-    reviews: 234,
-    description: "Effective pain relief and fever reducer",
-    image: "/paracetamol-tablet.jpg",
-  },
-  {
-    id: "2",
-    name: "Amoxicillin 250mg",
-    genericName: "Amoxicillin",
-    manufacturer: "Cipla",
-    price: 85,
-    category: "Antibiotics",
-    prescription: true,
-    inStock: true,
-    rating: 4.2,
-    reviews: 156,
-    description: "Antibiotic for bacterial infections",
-    image: "/antibiotic-capsule.jpg",
-  },
-  {
-    id: "3",
-    name: "Cetirizine 10mg",
-    genericName: "Cetirizine HCl",
-    manufacturer: "Dr. Reddy's",
-    price: 45,
-    originalPrice: 55,
-    category: "Allergy",
-    prescription: false,
-    inStock: true,
-    rating: 4.3,
-    reviews: 189,
-    description: "Antihistamine for allergy relief",
-    image: "/allergy-medicine-tablet.jpg",
-  },
-  {
-    id: "4",
-    name: "Omeprazole 20mg",
-    genericName: "Omeprazole",
-    manufacturer: "Lupin",
-    price: 120,
-    category: "Gastric",
-    prescription: true,
-    inStock: false,
-    rating: 4.4,
-    reviews: 98,
-    description: "Proton pump inhibitor for acid reflux",
-    image: "/gastric-medicine-capsule.jpg",
-  },
-  {
-    id: "5",
-    name: "Vitamin D3 60K IU",
-    genericName: "Cholecalciferol",
-    manufacturer: "Abbott",
-    price: 180,
-    category: "Vitamins",
-    prescription: false,
-    inStock: true,
-    rating: 4.6,
-    reviews: 312,
-    description: "Vitamin D supplement for bone health",
-    image: "/vitamin-d-capsule.jpg",
-  },
-  {
-    id: "6",
-    name: "Metformin 500mg",
-    genericName: "Metformin HCl",
-    manufacturer: "Glenmark",
-    price: 65,
-    category: "Diabetes",
-    prescription: true,
-    inStock: true,
-    rating: 4.1,
-    reviews: 145,
-    description: "Diabetes medication for blood sugar control",
-    image: "/diabetes-medicine-tablet.jpg",
-  },
-]
 
 interface CartItem extends Medicine {
   quantity: number
 }
 
-export function MedicineCatalog() {
-  const [medicines] = useState<Medicine[]>(sampleMedicines)
-  const [filteredMedicines, setFilteredMedicines] = useState<Medicine[]>(sampleMedicines)
+interface MedicineCatalogProps {
+  onBack?: () => void
+}
+
+export function MedicineCatalog({ onBack }: MedicineCatalogProps) {
+  const [medicines, setMedicines] = useState<Medicine[]>([])
+  const [filteredMedicines, setFilteredMedicines] = useState<Medicine[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const categories = ["all", ...Array.from(new Set(medicines.map((m) => m.category)))]
+  useEffect(() => {
+    loadMedicines()
+  }, [])
+
+  const loadMedicines = async () => {
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("medicines")
+        .select("*")
+        .gt("stock_quantity", 0) // Only show medicines in stock
+        .order("name")
+
+      if (error) throw error
+
+      setMedicines(data || [])
+      setFilteredMedicines(data || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load medicines")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const categories = ["all", ...Array.from(new Set(medicines.map((m) => m.category).filter(Boolean)))]
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
@@ -144,8 +82,7 @@ export function MedicineCatalog() {
       filtered = filtered.filter(
         (m) =>
           m.name.toLowerCase().includes(search.toLowerCase()) ||
-          m.genericName.toLowerCase().includes(search.toLowerCase()) ||
-          m.manufacturer.toLowerCase().includes(search.toLowerCase()),
+          m.description?.toLowerCase().includes(search.toLowerCase()),
       )
     }
 
@@ -189,12 +126,39 @@ export function MedicineCatalog() {
     return cart.reduce((total, item) => total + item.quantity, 0)
   }
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {onBack && <BackButton onClick={onBack} label="Back to Dashboard" />}
+        <div className="text-center py-12">
+          <p className="text-gray-500">Loading medicines...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        {onBack && <BackButton onClick={onBack} label="Back to Dashboard" />}
+        <div className="text-center py-12">
+          <p className="text-red-500">Error: {error}</p>
+          <Button onClick={loadMedicines} className="mt-4">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   if (showCart) {
     return <CartView cart={cart} updateQuantity={updateQuantity} onBack={() => setShowCart(false)} />
   }
 
   return (
     <div className="space-y-6">
+      {onBack && <BackButton onClick={onBack} label="Back to Dashboard" />}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -217,7 +181,7 @@ export function MedicineCatalog() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search medicines, brands, or generic names..."
+            placeholder="Search medicines..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
@@ -274,51 +238,38 @@ function MedicineCard({
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
             <CardTitle className="text-lg leading-tight">{medicine.name}</CardTitle>
-            <CardDescription className="text-sm">{medicine.genericName}</CardDescription>
+            <CardDescription className="text-sm">{medicine.description}</CardDescription>
           </div>
           <img
-            src={medicine.image || "/placeholder.svg"}
+            src={medicine.image_url || "/placeholder.svg?height=64&width=64"}
             alt={medicine.name}
             className="w-16 h-16 object-cover rounded-md ml-3"
           />
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant={medicine.prescription ? "destructive" : "secondary"}>
-            {medicine.prescription ? "Prescription" : "OTC"}
+          <Badge variant={medicine.requires_prescription ? "destructive" : "secondary"}>
+            {medicine.requires_prescription ? "Prescription" : "OTC"}
           </Badge>
-          <Badge variant="outline">{medicine.category}</Badge>
-          {!medicine.inStock && <Badge variant="destructive">Out of Stock</Badge>}
+          {medicine.category && <Badge variant="outline">{medicine.category}</Badge>}
+          {medicine.stock_quantity <= 5 && <Badge variant="destructive">Low Stock ({medicine.stock_quantity})</Badge>}
         </div>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col">
-        <p className="text-sm text-gray-600 mb-3 flex-1">{medicine.description}</p>
-
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium ml-1">{medicine.rating}</span>
-            </div>
-            <span className="text-sm text-gray-500">({medicine.reviews} reviews)</span>
-          </div>
-
+        <div className="space-y-3 flex-1">
           <div className="text-sm text-gray-600">
-            <p>Manufacturer: {medicine.manufacturer}</p>
+            <p>Stock: {medicine.stock_quantity} available</p>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-green-600">₹{medicine.price}</span>
-              {medicine.originalPrice && (
-                <span className="text-sm text-gray-500 line-through">₹{medicine.originalPrice}</span>
-              )}
             </div>
 
             <Button
               onClick={onAddToCart}
-              disabled={!medicine.inStock}
+              disabled={medicine.stock_quantity === 0}
               variant={inCart ? "secondary" : "default"}
               size="sm"
             >
@@ -367,15 +318,15 @@ function CartView({
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <img
-                    src={item.image || "/placeholder.svg"}
+                    src={item.image_url || "/placeholder.svg?height=64&width=64"}
                     alt={item.name}
                     className="w-16 h-16 object-cover rounded-md"
                   />
 
                   <div className="flex-1">
                     <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-sm text-gray-600">{item.genericName}</p>
-                    <p className="text-sm text-gray-500">{item.manufacturer}</p>
+                    <p className="text-sm text-gray-600">{item.description}</p>
+                    <p className="text-sm text-gray-500">{item.category}</p>
                   </div>
 
                   <div className="flex items-center gap-3">

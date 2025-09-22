@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Upload, FileText, Camera, X, Check } from "lucide-react"
+import { BackButton } from "@/components/ui/back-button"
 
 interface PrescriptionUpload {
   id: string
@@ -19,7 +20,11 @@ interface PrescriptionUpload {
   notes?: string
 }
 
-export function PrescriptionUpload() {
+interface PrescriptionUploadProps {
+  onBack?: () => void
+}
+
+export function PrescriptionUpload({ onBack }: PrescriptionUploadProps) {
   const [uploads, setUploads] = useState<PrescriptionUpload[]>([
     {
       id: "1",
@@ -113,6 +118,8 @@ export function PrescriptionUpload() {
 
   return (
     <div className="space-y-6">
+      {onBack && <BackButton onClick={onBack} label="Back to Dashboard" />}
+
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Prescription</h2>
         <p className="text-gray-600">Upload your prescription for prescription medicines</p>

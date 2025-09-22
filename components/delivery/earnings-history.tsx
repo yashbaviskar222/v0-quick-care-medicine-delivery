@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DollarSign, Package, TrendingUp, Download } from "lucide-react"
+import { DollarSign, Package, TrendingUp, Download, ArrowLeft } from "lucide-react"
 
 interface EarningRecord {
   id: string
@@ -76,7 +76,7 @@ const earningsData: EarningRecord[] = [
   },
 ]
 
-export function EarningsHistory() {
+export function EarningsHistory({ onBack }: { onBack?: () => void }) {
   const [earnings] = useState<EarningRecord[]>(earningsData)
   const [selectedPeriod, setSelectedPeriod] = useState("today")
 
@@ -128,9 +128,17 @@ export function EarningsHistory() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Earnings History</h2>
-          <p className="text-gray-600">Track your delivery earnings and performance</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <Button variant="outline" size="sm" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Earnings History</h2>
+            <p className="text-gray-600">Track your delivery earnings and performance</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
